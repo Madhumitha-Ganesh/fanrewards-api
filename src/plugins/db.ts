@@ -1,7 +1,13 @@
+import fp from 'fastify-plugin';
+import { FastifyInstance } from 'fastify';
 import { DataSource } from 'typeorm';
 import { config } from '../config';
 
-// TODO: Import your entities here
+import { User } from '../entities/User';
+import { Challenge } from '../entities/Challenge';
+import { ChallengeCompletion } from '../entities/ChallengeCompletion';
+import { Reward } from '../entities/Reward';
+import { RewardRedemption } from '../entities/RewardRedemption';
 
 const dataSource = new DataSource({
   type: 'postgres',
@@ -10,17 +16,41 @@ const dataSource = new DataSource({
   username: config.db.username,
   password: config.db.password,
   database: config.db.database,
+
   entities: [
-    // TODO: Add your entity classes here
+    User,
+    Challenge,
+    ChallengeCompletion,
+    Reward,
+    RewardRedemption,
   ],
-  migrations: [
-    // TODO: Add migration paths
-  ],
-  synchronize: false, // Use migrations instead
+
+  migrations: ['src/migrations/*.ts'],
+
+  synchronize: false,
   logging: false,
 });
 
 export { dataSource };
 
-// TODO: Create a Fastify plugin that initializes the DataSource
-// and decorates the Fastify instance with it
+const dbPlugin = fp(async (app: FastifyInstance) => {
+  try {
+    if (!dataSource.isInitialized) {
+      await dataSource.initialize();
+      app.log.info('Database connected successfully');
+    }
+
+    app.decorate('db', dataSource);
+
+    app.addHook('onClose', async () => {
+      if (dataSource.isInitialized) {
+        await dataSource.destroy();
+      }
+    });
+  } catch (error) {
+    app.log.error(error);
+    throw error;
+  }
+});
+
+export default dbPlugin;
