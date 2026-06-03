@@ -4,6 +4,9 @@ import helmet from '@fastify/helmet';
 import { config } from './config';
 import dbPlugin from './plugins/db';
 
+// Import routes
+import authRoutes from './routes/auth';
+
 const buildApp = async () => {
   const app = Fastify({
     logger: {
@@ -15,6 +18,10 @@ const buildApp = async () => {
   await app.register(cors, { origin: true });
   await app.register(helmet);
   await app.register(dbPlugin);
+
+  await app.register(authRoutes, {
+    prefix: '/api/auth',
+  });
 
   // Root route (basic API check)
   app.get('/', async () => {
