@@ -27,7 +27,9 @@ export default async function authRoutes(fastify: FastifyInstance) {
       const result = await authService.register(email, password, displayName);
       return reply.status(201).send({ data: result });
     } catch (error: any) {
-      return reply.status(400).send({ error: { code: error.message, message: error.message } });
+      // bonus: 409 instead of 400 for duplicate email
+      const status = error.message === 'EMAIL_ALREADY_EXISTS' ? 409 : 400;
+      return reply.status(status).send({ error: { code: error.message, message: error.message } });
     }
   });
 
@@ -49,7 +51,9 @@ export default async function authRoutes(fastify: FastifyInstance) {
       const result = await authService.login(email, password);
       return reply.send({ data: result });
     } catch (error: any) {
-      return reply.status(401).send({ error: { code: error.message, message: error.message } });
+      // bonus: 423 for locked account
+      const status = error.message === 'ACCOUNT_LOCKED' ? 423 : 401;
+      return reply.status(status).send({ error: { code: error.message, message: error.message } });
     }
   });
 
@@ -75,8 +79,24 @@ export default async function authRoutes(fastify: FastifyInstance) {
   });
 
   // Logout
-  fastify.post('/logout', async (_request, reply) => {
-    await authService.logout();
-    return reply.send({ data: { success: true } });
+  // bonus: logout accepts refreshToken to invalidate it in DB
+  fastify.post('/logout', {
+    schema: {
+      body: {
+        type: 'object',
+        required: ['refreshToken'],
+        properties: {
+          refreshToken: { type: 'string', minLength: 1 },
+        },
+      },
+    },
+  }, async (request, reply) => {
+    const { refreshToken } = request.body as { refreshToken: string };
+    await authService.logout(refreshToken);
+    return reply.send({
+      data: {
+        success: true,
+      },
+    });
   });
 }

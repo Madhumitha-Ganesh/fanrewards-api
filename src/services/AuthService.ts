@@ -49,15 +49,28 @@ export class AuthService {
             throw new Error('INVALID_CREDENTIALS');
         }
 
+        if (user.lockedUntil && user.lockedUntil > new Date()) {
+            // bonus: account lockout - return 423 in route
+            throw new Error('ACCOUNT_LOCKED');
+        }
+
         const validPassword = await bcrypt.compare(
             password,
             user.passwordHash
         );
 
         if (!validPassword) {
+            // bonus: track failed attempts, lock after 5 for 15 mins
+            const attempts = user.failedLoginAttempts + 1;
+            const update: Partial<User> = { failedLoginAttempts: attempts };
+            if (attempts >= 5) {
+                update.lockedUntil = new Date(Date.now() + 15 * 60 * 1000);
+            }
+            await this.userRepository.update(user.id, update);
             throw new Error('INVALID_CREDENTIALS');
         }
 
+        await this.userRepository.update(user.id, { failedLoginAttempts: 0, lockedUntil: null });
         return this.generateTokens(user);
     }
 
@@ -71,18 +84,25 @@ export class AuthService {
             where: { id: payload.userId },
         });
 
-        if (!user) {
-            throw new Error('USER_NOT_FOUND');
+        if (!user || user.refreshToken !== refreshToken) {
+            // bonus:Enhanced Security: token rotation - validate stored token on refresh
+            throw new Error('INVALID_REFRESH_TOKEN');
         }
 
         return this.generateTokens(user);
     }
 
-    async logout() {
+    async logout(refreshToken: string) {
+        // bonus: Enhanced Security: real logout - invalidate refresh token in DB
+        const payload = jwt.verify(
+            refreshToken,
+            config.jwt.refreshSecret
+        ) as { userId: string };
+        await this.userRepository.update(payload.userId, { refreshToken: null });
         return { success: true };
     }
 
-    private generateTokens(user: User) {
+    private async generateTokens(user: User) {
         const accessToken = jwt.sign(
             {
                 userId: user.id,
@@ -103,6 +123,9 @@ export class AuthService {
                 expiresIn: '7d',
             }
         );
+
+        await this.userRepository.update(user.id, { refreshToken });
+        // bonus:Enhanced Security: token rotation - store new refresh token, old one is invalidated
 
         return {
             accessToken,
