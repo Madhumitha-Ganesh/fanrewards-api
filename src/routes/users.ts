@@ -8,7 +8,7 @@ import { RewardRedemption } from '../entities/RewardRedemption';
 export default async function userRoutes(fastify: FastifyInstance) {
   fastify.addHook('preHandler', authMiddleware);
 
-  fastify.get('/me', async (request, reply) => {
+  fastify.get('/me', { schema: { security: [{ bearerAuth: [] }] } }, async (request, reply) => {
     const user = await dataSource.getRepository(User).findOne({
       where: { id: request.user!.userId },
       select: ['id', 'email', 'displayName', 'totalPoints', 'createdAt', 'updatedAt'],
@@ -21,6 +21,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
 
   fastify.patch('/me', {
     schema: {
+      security: [{ bearerAuth: [] }],
       body: {
         type: 'object',
         properties: {
@@ -42,7 +43,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
     return reply.send({ data: user });
   });
 
-  fastify.get('/me/stats', async (request, reply) => {
+  fastify.get('/me/stats', { schema: { security: [{ bearerAuth: [] }] } }, async (request, reply) => {
     const userId = request.user!.userId;
 
     const user = await dataSource.getRepository(User).findOne({

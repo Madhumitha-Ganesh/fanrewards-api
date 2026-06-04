@@ -10,6 +10,7 @@ export default async function challengeRoutes(fastify: FastifyInstance) {
 
   fastify.get('/', {
     schema: {
+      security: [{ bearerAuth: [] }],
       querystring: {
         type: 'object',
         properties: {
@@ -32,7 +33,7 @@ export default async function challengeRoutes(fastify: FastifyInstance) {
     return reply.send(result);
   });
 
-  fastify.get('/:id', async (request, reply) => {
+  fastify.get('/:id', { schema: { security: [{ bearerAuth: [] }] } }, async (request, reply) => {
     try {
       const { id } = request.params as { id: string };
       const challenge = await svc.getById(id);
@@ -44,6 +45,7 @@ export default async function challengeRoutes(fastify: FastifyInstance) {
 
   fastify.post('/:id/complete', {
     schema: {
+      security: [{ bearerAuth: [] }],
       body: {
         type: 'object',
         required: ['listenPercentage'],
