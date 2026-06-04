@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { dataSource } from './plugins/db';
+import { getDataSource } from './plugins/db';
 import { Challenge } from './entities/Challenge';
 import { Reward } from './entities/Reward';
 
@@ -54,7 +54,11 @@ const SEED_REWARDS = [
 ];
 
 async function seed() {
-  await dataSource.initialize();
+  const dataSource = getDataSource();
+  
+  if (!dataSource.isInitialized) {
+    await dataSource.initialize();
+  }
 
   const challengeRepo = dataSource.getRepository(Challenge);
   const rewardRepo = dataSource.getRepository(Reward);
