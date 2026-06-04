@@ -7,17 +7,17 @@ const svc = new RewardService();
 export default async function rewardRoutes(fastify: FastifyInstance) {
   fastify.addHook('preHandler', authMiddleware);
 
-  fastify.get('/', async (_request, reply) => {
+  fastify.get('/', { schema: { security: [{ bearerAuth: [] }] } }, async (_request, reply) => {
     const rewards = await svc.list();
     return reply.send({ data: rewards });
   });
 
-  fastify.get('/history', async (request, reply) => {
+  fastify.get('/history', { schema: { security: [{ bearerAuth: [] }] } }, async (request, reply) => {
     const history = await svc.getHistory(request.user!.userId);
     return reply.send({ data: history });
   });
 
-  fastify.post('/:id/redeem', async (request, reply) => {
+  fastify.post('/:id/redeem', { schema: { security: [{ bearerAuth: [] }] } }, async (request, reply) => {
     try {
       const { id } = request.params as { id: string };
       const redemption = await svc.redeem(request.user!.userId, id);

@@ -9,6 +9,7 @@ export default async function leaderboardRoutes(fastify: FastifyInstance) {
 
   fastify.get('/', {
     schema: {
+      security: [{ bearerAuth: [] }],
       querystring: {
         type: 'object',
         properties: {
@@ -23,7 +24,7 @@ export default async function leaderboardRoutes(fastify: FastifyInstance) {
     return reply.send(result);
   });
 
-  fastify.get('/me', async (request, reply) => {
+  fastify.get('/me', { schema: { security: [{ bearerAuth: [] }] } }, async (request, reply) => {
     try {
       const result = await svc.getUserRank(request.user!.userId);
       return reply.send({ data: result });

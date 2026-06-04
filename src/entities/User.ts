@@ -1,6 +1,3 @@
-// Implement the User entity
-// Fields: id (uuid), email (unique), password hash, total points, display name, timestamps
-// Relations: a user has many challenge completions and reward redemptions
 import {
     Entity,
     PrimaryGeneratedColumn,
@@ -18,32 +15,31 @@ export class User {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
-    @Column({
-        unique: true,
-    })
+    @Column({ unique: true })
     email!: string;
 
     @Column()
     passwordHash!: string;
 
-    @Column({
-        default: 0,
-    })
+    @Column({ default: 0 })
     totalPoints!: number;
 
     @Column()
     displayName!: string;
 
-    @OneToMany(
-        () => ChallengeCompletion,
-        (completion: ChallengeCompletion) => completion.user
-    )
+    @Column({ nullable: true, type: 'text' })
+    refreshToken!: string | null;
+
+    @Column({ default: 0 })
+    failedLoginAttempts!: number;
+
+    @Column({ nullable: true, type: 'timestamptz' })
+    lockedUntil!: Date | null;
+
+    @OneToMany(() => ChallengeCompletion, (c) => c.user)
     challengeCompletions!: ChallengeCompletion[];
 
-    @OneToMany(
-        () => RewardRedemption,
-        (redemption: RewardRedemption) => redemption.user
-    )
+    @OneToMany(() => RewardRedemption, (r) => r.user)
     rewardRedemptions!: RewardRedemption[];
 
     @CreateDateColumn()
