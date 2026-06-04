@@ -1,3 +1,4 @@
+import { DataSource } from 'typeorm';
 import { dataSource } from '../plugins/db';
 import { Challenge } from '../entities/Challenge';
 import { ChallengeCompletion } from '../entities/ChallengeCompletion';
@@ -5,16 +6,17 @@ import { User } from '../entities/User';
 import { Difficulty } from '../entities/Challenge';
 
 export class ChallengeService {
-  private challengeRepo = dataSource.getRepository(Challenge);
-  private completionRepo = dataSource.getRepository(ChallengeCompletion);
-  private userRepo = dataSource.getRepository(User);
+  private ds: DataSource;
 
-  async list(options: {
-    page: number;
-    limit: number;
-    difficulty?: Difficulty;
-    active?: boolean;
-  }) {
+  constructor(ds?: DataSource) {
+    this.ds = ds || dataSource;
+  }
+
+  private get challengeRepo() { return this.ds.getRepository(Challenge); }
+  private get completionRepo() { return this.ds.getRepository(ChallengeCompletion); }
+  private get userRepo() { return this.ds.getRepository(User); }
+
+  async list(options: { page: number; limit: number; difficulty?: Difficulty; active?: boolean }) {
     const { page, limit, difficulty, active } = options;
 
     const qb = this.challengeRepo.createQueryBuilder('c');
@@ -46,7 +48,7 @@ export class ChallengeService {
       ? challenge.points
       : Math.floor(challenge.points * (listenPercentage / 100));
 
-    await dataSource.transaction(async (manager) => {
+    await this.ds.transaction(async (manager) => {
       const completion = manager.create(ChallengeCompletion, {
         user: { id: userId },
         challenge: { id: challengeId },
@@ -58,7 +60,6 @@ export class ChallengeService {
     });
 
     const user = await this.userRepo.findOne({ where: { id: userId } });
-
     return { pointsEarned, totalPoints: user!.totalPoints };
   }
 }

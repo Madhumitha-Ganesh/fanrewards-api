@@ -9,9 +9,18 @@ import jwt from 'jsonwebtoken';
 import { dataSource } from '../plugins/db';
 import { User } from '../entities/User';
 import { config } from '../config';
+import { DataSource } from 'typeorm';
 
 export class AuthService {
-    private userRepository = dataSource.getRepository(User);
+    private dataSource: DataSource;
+
+    constructor(ds?: DataSource) {
+        this.dataSource = ds || dataSource;
+    }
+
+    private get userRepository() {
+        return this.dataSource.getRepository(User);
+    }
 
     async register(
         email: string,
@@ -117,6 +126,7 @@ export class AuthService {
         const refreshToken = jwt.sign(
             {
                 userId: user.id,
+                jti: Math.random().toString(36).slice(2),
             },
             config.jwt.refreshSecret,
             {

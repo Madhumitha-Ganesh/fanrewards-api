@@ -1,8 +1,15 @@
+import { DataSource } from 'typeorm';
 import { dataSource } from '../plugins/db';
 import { User } from '../entities/User';
 
 export class LeaderboardService {
-  private userRepo = dataSource.getRepository(User);
+  private ds: DataSource;
+
+  constructor(ds?: DataSource) {
+    this.ds = ds || dataSource;
+  }
+
+  private get userRepo() { return this.ds.getRepository(User); }
 
   async getTopFans(page: number, limit: number) {
     const [users, total] = await this.userRepo.findAndCount({

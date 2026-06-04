@@ -1,19 +1,25 @@
+import { DataSource } from 'typeorm';
 import { dataSource } from '../plugins/db';
 import { Reward } from '../entities/Reward';
 import { RewardRedemption } from '../entities/RewardRedemption';
 import { User } from '../entities/User';
 
 export class RewardService {
-  private rewardRepo = dataSource.getRepository(Reward);
-  private redemptionRepo = dataSource.getRepository(RewardRedemption);
-  private userRepo = dataSource.getRepository(User);
+  private ds: DataSource;
+
+  constructor(ds?: DataSource) {
+    this.ds = ds || dataSource;
+  }
+
+  private get rewardRepo() { return this.ds.getRepository(Reward); }
+  private get redemptionRepo() { return this.ds.getRepository(RewardRedemption); }
 
   async list() {
     return this.rewardRepo.find({ where: { available: true } });
   }
 
   async redeem(userId: string, rewardId: string) {
-    return dataSource.transaction(async (manager) => {
+    return this.ds.transaction(async (manager) => {
       const user = await manager
         .getRepository(User)
         .createQueryBuilder('u')
