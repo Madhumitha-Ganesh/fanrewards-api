@@ -13,7 +13,7 @@ export const testDataSource = new DataSource({
   password: 'belong_dev',
   database: 'fan_rewards',
   entities: [User, Challenge, ChallengeCompletion, Reward, RewardRedemption],
-  synchronize: true,
+  synchronize: false,
   logging: false,
 });
 

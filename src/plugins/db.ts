@@ -17,7 +17,7 @@ const createDataSource = () => new DataSource({
   database: process.env.DB_DATABASE || 'fan_rewards',
   entities: [User, Challenge, ChallengeCompletion, Reward, RewardRedemption],
   migrations: ['src/migrations/*.ts'],
-  synchronize: true,
+  synchronize: false,
   logging: false,
 });
 
