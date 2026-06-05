@@ -40,11 +40,35 @@ export async function authMiddleware(
         ) as AuthPayload;
 
         request.user = payload;
-    } catch {
+    } catch (error) {
+        //Handling expired token separately for better error messages
+        if (error instanceof jwt.TokenExpiredError) {
+            return reply.status(401).send({
+                error: { code: 'TOKEN_EXPIRED', message: 'Token expired' },
+            });
+        }
+        if (error instanceof jwt.JsonWebTokenError) {
+            return reply.status(401).send({
+                error: {
+                    code: 'INVALID_TOKEN',
+                    message: 'Token is invalid',
+                },
+            });
+        }
+
+        if (error instanceof jwt.NotBeforeError) {
+            return reply.status(401).send({
+                error: {
+                    code: 'TOKEN_NOT_ACTIVE',
+                    message: 'Token not active yet',
+                },
+            });
+        }
+        // fallback
         return reply.status(401).send({
             error: {
                 code: 'UNAUTHORIZED',
-                message: 'Invalid access token',
+                message: 'Authentication failed',
             },
         });
     }
