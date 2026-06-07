@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { authMiddleware } from '../middleware/auth';
 import { ChallengeService } from '../services/ChallengeService';
-import { Difficulty } from '../entities/Challenge';
+import { ChallengeListOptions } from '../types';
 
 const svc = new ChallengeService();
 
@@ -22,12 +22,7 @@ export default async function challengeRoutes(fastify: FastifyInstance) {
       },
     },
   }, async (request, reply) => {
-    const { page, limit, difficulty, active } = request.query as {
-      page: number;
-      limit: number;
-      difficulty?: Difficulty;
-      active?: boolean;
-    };
+    const { page, limit, difficulty, active } = request.query as ChallengeListOptions;
 
     const result = await svc.list({ page, limit, difficulty, active });
     return reply.send(result);

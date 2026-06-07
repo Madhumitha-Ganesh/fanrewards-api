@@ -20,7 +20,7 @@ export default async function leaderboardRoutes(fastify: FastifyInstance) {
     },
   }, async (request, reply) => {
     const { page, limit } = request.query as { page: number; limit: number };
-    const result = await svc.getTopFans(page, limit);
+    const result = await svc.getTopFans({ page, limit });
     return reply.send(result);
   });
 

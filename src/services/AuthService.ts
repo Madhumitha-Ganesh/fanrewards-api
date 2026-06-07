@@ -10,12 +10,13 @@ import { dataSource } from '../plugins/db';
 import { User } from '../entities/User';
 import { config } from '../config';
 import { DataSource } from 'typeorm';
+import { TokenPair } from '../types';
 
 export class AuthService {
     private dataSource: DataSource;
 
     constructor(ds?: DataSource) {
-        this.dataSource = ds || dataSource;
+        this.dataSource = ds ?? dataSource;
     }
 
     private get userRepository() {
@@ -111,7 +112,7 @@ export class AuthService {
         return { success: true };
     }
 
-    private async generateTokens(user: User) {
+    private async generateTokens(user: User): Promise<TokenPair & { user: { id: string; email: string; displayName: string; totalPoints: number; createdAt: Date } }> {
         const accessToken = jwt.sign(
             {
                 userId: user.id,

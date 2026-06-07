@@ -1,6 +1,7 @@
 import fp from 'fastify-plugin';
 import { FastifyInstance } from 'fastify';
 import { DataSource } from 'typeorm';
+import { config } from '../config';
 
 import { User } from '../entities/User';
 import { Challenge } from '../entities/Challenge';
@@ -10,11 +11,11 @@ import { RewardRedemption } from '../entities/RewardRedemption';
 
 const createDataSource = () => new DataSource({
   type: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  username: process.env.DB_USERNAME || 'belong',
-  password: process.env.DB_PASSWORD || 'belong_dev',
-  database: process.env.DB_DATABASE || 'fan_rewards',
+  host: config.db.host || 'localhost',
+  port: config.db.port || 5432,
+  username: config.db.username || 'belong',
+  password: config.db.password || 'belong_dev',
+  database: config.db.database || 'fan_rewards',
   entities: [User, Challenge, ChallengeCompletion, Reward, RewardRedemption],
   migrations: ['src/migrations/*.ts'],
   synchronize: false,
