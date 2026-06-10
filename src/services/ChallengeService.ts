@@ -3,7 +3,7 @@ import { dataSource } from '../plugins/db';
 import { Challenge } from '../entities/Challenge';
 import { ChallengeCompletion } from '../entities/ChallengeCompletion';
 import { User } from '../entities/User';
-import { Difficulty } from '../entities/Challenge';
+import { ChallengeListOptions, PaginatedResult } from '../types';
 
 export class ChallengeService {
   private ds: DataSource;
@@ -13,10 +13,9 @@ export class ChallengeService {
   }
 
   private get challengeRepo() { return this.ds.getRepository(Challenge); }
-  private get completionRepo() { return this.ds.getRepository(ChallengeCompletion); }
   private get userRepo() { return this.ds.getRepository(User); }
 
-  async list(options: { page: number; limit: number; difficulty?: Difficulty; active?: boolean }) {
+  async list(options: ChallengeListOptions): Promise<PaginatedResult<Challenge>> {
     const { page, limit, difficulty, active } = options;
 
     const qb = this.challengeRepo.createQueryBuilder('c');

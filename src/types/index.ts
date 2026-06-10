@@ -8,6 +8,11 @@ export interface PaginationOptions {
   limit: number;
 }
 
+export interface ChallengeListOptions extends PaginationOptions {
+  difficulty?: 'easy' | 'medium' | 'hard';
+  active?: boolean;
+}
+
 export interface PaginatedResult<T> {
   data: T[];
   meta: {
@@ -25,11 +30,3 @@ export interface LeaderboardEntry {
   totalPoints: number;
 }
 
-// Extend Fastify's request type with authenticated user
-declare module 'fastify' {
-  interface FastifyRequest {
-    user?: {
-      userId: string;
-    };
-  }
-}

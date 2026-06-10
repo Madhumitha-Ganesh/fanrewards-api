@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import { dataSource } from '../plugins/db';
 import { User } from '../entities/User';
+import { PaginationOptions, PaginatedResult, LeaderboardEntry } from '../types';
 
 export class LeaderboardService {
   private ds: DataSource;
@@ -11,7 +12,8 @@ export class LeaderboardService {
 
   private get userRepo() { return this.ds.getRepository(User); }
 
-  async getTopFans(page: number, limit: number) {
+  async getTopFans(options: PaginationOptions): Promise<PaginatedResult<LeaderboardEntry>> {
+    const { page, limit } = options;
     const [users, total] = await this.userRepo.findAndCount({
       select: ['id', 'displayName', 'totalPoints'],
       order: { totalPoints: 'DESC', createdAt: 'ASC' },
@@ -30,7 +32,7 @@ export class LeaderboardService {
     return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
-  async getUserRank(userId: string) {
+  async getUserRank(userId: string): Promise<LeaderboardEntry & { rank: number }> {
     const user = await this.userRepo.findOne({
       where: { id: userId },
       select: ['id', 'displayName', 'totalPoints', 'createdAt'],
