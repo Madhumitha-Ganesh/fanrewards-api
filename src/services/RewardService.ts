@@ -29,7 +29,11 @@ export class RewardService {
 
       if (!user) throw new Error('USER_NOT_FOUND');
 
-      const reward = await manager.getRepository(Reward).findOne({ where: { id: rewardId } });
+      const reward = await manager.getRepository(Reward)
+        .createQueryBuilder('r')
+        .setLock('pessimistic_write')
+        .where('r.id = :id', { id: rewardId })
+        .getOne();
       if (!reward) throw new Error('REWARD_NOT_FOUND');
       if (!reward.available) throw new Error('REWARD_UNAVAILABLE');
 
@@ -38,6 +42,7 @@ export class RewardService {
       }
 
       user.totalPoints -= reward.pointsCost;
+      reward.available = false;
       await manager.save(user);
 
       const redemption = manager.create(RewardRedemption, {
